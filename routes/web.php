@@ -1,55 +1,54 @@
 <?php
 
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BloqueController;
 use App\Http\Controllers\PiezaController;
 use App\Http\Controllers\ProyectoController;
-use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
+// Ruta principal - redirige al login
 Route::get('/', function () {
-    return Inertia::render('Welcome', [
-        'canLogin' => Route::has('login'),
-        'canRegister' => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
-    ]);
+    return redirect()->route('login');
 });
 
-Route::middleware([
-    'auth:sanctum',
-    config('jetstream.auth_session'),
-    'verified',
-])->group(function () {
-    Route::get('/dashboard', function () {
-        return Inertia::render('Dashboard');
-    })->name('dashboard');
+// Rutas de autenticación
+Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
+Route::post('/login', [AuthController::class, 'login']);
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+// Rutas protegidas por autenticación
+Route::middleware(['auth'])->group(function () {
+    // Dashboard
+    Route::get('/dashboard', [AuthController::class, 'dashboard'])->name('dashboard');
     
-    // Ruta principal del formulario de registro de piezas
-    Route::get('/formulario-piezas', function () {
-        return Inertia::render('FormularioPiezas');
-    })->name('formulario.piezas');
+    // Proyectos CRUD
+    Route::resource('proyectos', ProyectoController::class);
     
-    // Ruta del reporte de piezas pendientes
-    Route::get('/reporte-piezas', function () {
-        return Inertia::render('ReportePiezas');
-    })->name('reporte.piezas');
+    // Bloques CRUD
+    Route::resource('bloques', BloqueController::class);
     
-    // Rutas para la API interna (Inertia)
+    // Piezas CRUD
+    Route::resource('piezas', PiezaController::class);
+    
+    // Formulario de registro de peso
+    Route::get('/piezas-formulario', [PiezaController::class, 'formulario'])->name('piezas.formulario');
+    
+    // Reporte de piezas pendientes
+    Route::get('/piezas-reporte', [PiezaController::class, 'reporte'])->name('piezas.reporte');
+    
+    // Rutas API (mantener para Ajax)
     Route::prefix('api')->group(function () {
         // Proyectos
-        Route::get('/proyectos', [ProyectoController::class, 'index'])->name('api.proyectos.index');
-        Route::get('/proyectos/{id}/bloques', [ProyectoController::class, 'bloques'])->name('api.proyectos.bloques');
+        Route::get('/proyectos', [ProyectoController::class, 'index']);
+        Route::get('/proyectos/{id}/bloques', [ProyectoController::class, 'bloques']);
         
         // Bloques
-        Route::get('/bloques', [BloqueController::class, 'index'])->name('api.bloques.index');
+        Route::get('/bloques', [BloqueController::class, 'index']);
         
         // Piezas
-        Route::get('/piezas', [PiezaController::class, 'index'])->name('api.piezas.index');
-        Route::post('/piezas', [PiezaController::class, 'store'])->name('api.piezas.store');
-        Route::post('/piezas/{id}/registrar-peso', [PiezaController::class, 'registrarPeso'])->name('api.piezas.registrar-peso');
-        
-        // Reportes
-        Route::get('/reportes/piezas-pendientes', [PiezaController::class, 'pendientesPorProyecto'])->name('api.reportes.pendientes');
+        Route::get('/piezas', [PiezaController::class, 'index']);
+        Route::post('/piezas', [PiezaController::class, 'store']);
+        Route::post('/piezas/{id}/registrar-peso', [PiezaController::class, 'registrarPeso']);
+        Route::get('/reportes/piezas-pendientes-por-proyecto', [PiezaController::class, 'pendientesPorProyecto']);
     });
 });

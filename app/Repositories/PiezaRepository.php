@@ -129,6 +129,14 @@ class PiezaRepository implements PiezaRepositoryInterface
     }
 
     /**
+     * Get all piezas with pagination (alias)
+     */
+    public function getAllPaginated($perPage = 15)
+    {
+        return $this->paginate($perPage);
+    }
+
+    /**
      * Get piezas pendientes agrupadas por proyecto.
      */
     public function getPendientesAgrupadasPorProyecto(): Collection

@@ -45,5 +45,5 @@ interface ProyectoRepositoryInterface
     /**
      * Get proyecto with estadisticas de piezas.
      */
-    public function getWithEstadisticas(int $id): ?Model;
+    public function getWithEstadisticas(?int $id = null);
 }

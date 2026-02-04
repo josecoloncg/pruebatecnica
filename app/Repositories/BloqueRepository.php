@@ -88,4 +88,12 @@ class BloqueRepository implements BloqueRepositoryInterface
             ->with(['piezasPendientes'])
             ->find($id);
     }
+
+    /**
+     * Get all bloques with pagination
+     */
+    public function getAllPaginated($perPage = 15)
+    {
+        return $this->model->withCount('piezas')->with('proyecto')->paginate($perPage);
+    }
 }

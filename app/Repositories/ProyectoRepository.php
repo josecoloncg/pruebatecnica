@@ -87,10 +87,11 @@ class ProyectoRepository implements ProyectoRepositoryInterface
     /**
      * Get proyecto with estadisticas de piezas.
      */
-    public function getWithEstadisticas(int $id): ?Model
+    public function getWithEstadisticas($id = null)
     {
-        return $this->model
+        $query = $this->model
             ->withCount([
+                'bloques',
                 'piezas',
                 'piezas as piezas_pendientes_count' => function ($query) {
                     $query->where('estado', 'Pendiente');
@@ -98,7 +99,12 @@ class ProyectoRepository implements ProyectoRepositoryInterface
                 'piezas as piezas_fabricadas_count' => function ($query) {
                     $query->where('estado', 'Fabricado');
                 },
-            ])
-            ->find($id);
+            ]);
+
+        if ($id) {
+            return $query->find($id);
+        }
+
+        return $query->paginate(15);
     }
 }

@@ -41,4 +41,9 @@ interface BloqueRepositoryInterface
      * Get bloque with piezas pendientes.
      */
     public function getWithPiezasPendientes(int $id): ?Model;
+
+    /**
+     * Get all bloques with pagination.
+     */
+    public function getAllPaginated(int $perPage = 15);
 }

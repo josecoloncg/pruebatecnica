@@ -3,83 +3,122 @@
 namespace App\Http\Controllers;
 
 use App\Repositories\Contracts\BloqueRepositoryInterface;
+use App\Repositories\Contracts\ProyectoRepositoryInterface;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 class BloqueController extends Controller
 {
     protected BloqueRepositoryInterface $bloqueRepository;
+    protected ProyectoRepositoryInterface $proyectoRepository;
 
-    public function __construct(BloqueRepositoryInterface $bloqueRepository)
-    {
+    public function __construct(
+        BloqueRepositoryInterface $bloqueRepository,
+        ProyectoRepositoryInterface $proyectoRepository
+    ) {
         $this->bloqueRepository = $bloqueRepository;
+        $this->proyectoRepository = $proyectoRepository;
     }
 
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request): JsonResponse
+    public function index(Request $request)
     {
-        // Si se pasa proyecto_id, filtrar por proyecto
-        if ($request->has('proyecto_id')) {
-            $bloques = $this->bloqueRepository->getByProyecto($request->proyecto_id);
-        } else {
-            $bloques = $this->bloqueRepository->all();
+        // API request
+        if ($request->expectsJson()) {
+            if ($request->has('proyecto_id')) {
+                $bloques = $this->bloqueRepository->getByProyecto($request->proyecto_id);
+            } else {
+                $bloques = $this->bloqueRepository->all();
+            }
+            return response()->json($bloques);
         }
 
-        return response()->json([
-            'success' => true,
-            'data' => $bloques,
-        ]);
+        // Web view
+        $bloques = $this->bloqueRepository->getAllPaginated(15);
+        return view('bloques.index', compact('bloques'));
+    }
+
+    /**
+     * Show form for creating a new resource.
+     */
+    public function create(): View
+    {
+        $proyectos = $this->proyectoRepository->all();
+        return view('bloques.create', compact('proyectos'));
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request): JsonResponse
+    public function store(Request $request)
     {
         $validated = $request->validate([
-            'nombre_bloque' => 'required|string|max:10',
+            'nombre_bloque' => 'required|string|max:50',
             'proyecto_id' => 'required|exists:proyectos,id',
             'descripcion' => 'nullable|string',
         ]);
 
         $bloque = $this->bloqueRepository->create($validated);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Bloque creado exitosamente',
-            'data' => $bloque,
-        ], 201);
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Bloque creado exitosamente',
+                'data' => $bloque,
+            ], 201);
+        }
+
+        return redirect()->route('bloques.index')->with('success', 'Bloque creado exitosamente');
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(int $id): JsonResponse
+    public function show(int $id)
     {
-        $bloque = $this->bloqueRepository->getWithPiezasPendientes($id);
+        $bloque = $this->bloqueRepository->find($id);
 
         if (!$bloque) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Bloque no encontrado',
-            ], 404);
+            if (request()->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Bloque no encontrado'], 404);
+            }
+            abort(404);
         }
 
-        return response()->json([
-            'success' => true,
-            'data' => $bloque,
-        ]);
+        $bloque->load(['proyecto', 'piezas.usuario']);
+
+        if (request()->expectsJson()) {
+            return response()->json(['success' => true, 'data' => $bloque]);
+        }
+
+        return view('bloques.show', compact('bloque'));
+    }
+
+    /**
+     * Show form for editing the specified resource.
+     */
+    public function edit(int $id): View
+    {
+        $bloque = $this->bloqueRepository->find($id);
+        
+        if (!$bloque) {
+            abort(404);
+        }
+
+        $proyectos = $this->proyectoRepository->all();
+        return view('bloques.edit', compact('bloque', 'proyectos'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, int $id): JsonResponse
+    public function update(Request $request, int $id)
     {
         $validated = $request->validate([
-            'nombre_bloque' => 'sometimes|string|max:10',
+            'nombre_bloque' => 'sometimes|string|max:50',
             'proyecto_id' => 'sometimes|exists:proyectos,id',
             'descripcion' => 'nullable|string',
         ]);
@@ -87,35 +126,37 @@ class BloqueController extends Controller
         $updated = $this->bloqueRepository->update($id, $validated);
 
         if (!$updated) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Bloque no encontrado',
-            ], 404);
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Bloque no encontrado'], 404);
+            }
+            return redirect()->route('bloques.index')->with('error', 'Bloque no encontrado');
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Bloque actualizado exitosamente',
-        ]);
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'message' => 'Bloque actualizado exitosamente']);
+        }
+
+        return redirect()->route('bloques.index')->with('success', 'Bloque actualizado exitosamente');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(int $id): JsonResponse
+    public function destroy(int $id)
     {
         $deleted = $this->bloqueRepository->delete($id);
 
         if (!$deleted) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Bloque no encontrado',
-            ], 404);
+            if (request()->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Bloque no encontrado'], 404);
+            }
+            return redirect()->route('bloques.index')->with('error', 'Bloque no encontrado');
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Bloque eliminado exitosamente',
-        ]);
+        if (request()->expectsJson()) {
+            return response()->json(['success' => true, 'message' => 'Bloque eliminado exitosamente']);
+        }
+
+        return redirect()->route('bloques.index')->with('success', 'Bloque eliminado exitosamente');
     }
 }

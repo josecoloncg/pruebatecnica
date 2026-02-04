@@ -59,6 +59,11 @@ interface PiezaRepositoryInterface
     public function paginate(int $perPage = 15): LengthAwarePaginator;
 
     /**
+     * Get all piezas with pagination.
+     */
+    public function getAllPaginated(int $perPage = 15);
+
+    /**
      * Get piezas pendientes agrupadas por proyecto.
      */
     public function getPendientesAgrupadasPorProyecto(): Collection;
