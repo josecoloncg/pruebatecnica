@@ -3,12 +3,13 @@
 use App\Http\Controllers\BloqueController;
 use App\Http\Controllers\PiezaController;
 use App\Http\Controllers\ProyectoController;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 // Ruta principal - redirige según estado de autenticación
 Route::get('/', function () {
-    return auth()->check() 
+    return Auth::check() 
         ? redirect()->route('proyectos.index') 
         : redirect()->route('login');
 });
