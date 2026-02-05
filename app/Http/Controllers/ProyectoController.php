@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use App\Repositories\Contracts\ProyectoRepositoryInterface;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
-use Illuminate\Http\RedirectResponse;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 
 class ProyectoController extends Controller
 {
@@ -28,15 +28,17 @@ class ProyectoController extends Controller
         }
 
         $proyectos = $this->proyectoRepository->getWithEstadisticas(null);
-        return view('proyectos.index', compact('proyectos'));
+        return Inertia::render('Proyectos/Index', [
+            'proyectos' => $proyectos->items()
+        ]);
     }
 
     /**
      * Show form for creating a new resource.
      */
-    public function create(): View
+    public function create(): InertiaResponse
     {
-        return view('proyectos.create');
+        return Inertia::render('Proyectos/Create');
     }
 
     /**
@@ -83,13 +85,14 @@ class ProyectoController extends Controller
             return response()->json(['success' => true, 'data' => $proyecto]);
         }
 
-        return view('proyectos.show', compact('proyecto'));
+        // Redirigir a edit en lugar de show
+        return redirect()->route('proyectos.edit', $id);
     }
 
     /**
      * Show form for editing the specified resource.
      */
-    public function edit(int $id): View
+    public function edit(int $id): InertiaResponse
     {
         $proyecto = $this->proyectoRepository->find($id);
         
@@ -97,7 +100,9 @@ class ProyectoController extends Controller
             abort(404);
         }
 
-        return view('proyectos.edit', compact('proyecto'));
+        return Inertia::render('Proyectos/Edit', [
+            'proyecto' => $proyecto
+        ]);
     }
 
     /**

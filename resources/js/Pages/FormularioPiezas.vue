@@ -88,8 +88,10 @@ watch(() => form.pieza_id, (nuevaPiezaId) => {
 const cargarProyectos = async () => {
     try {
         loading.value = true;
-        const response = await axios.get('/api/proyectos');
-        proyectos.value = response.data.data;
+        const response = await axios.get('/proyectos', {
+            headers: { 'Accept': 'application/json' }
+        });
+        proyectos.value = response.data;
     } catch (error) {
         console.error('Error cargando proyectos:', error);
         mostrarError('Error al cargar proyectos');
@@ -101,8 +103,8 @@ const cargarProyectos = async () => {
 const cargarBloques = async (proyectoId) => {
     try {
         loading.value = true;
-        const response = await axios.get(`/api/bloques?proyecto_id=${proyectoId}`);
-        bloques.value = response.data.data;
+        const response = await axios.get(`/proyectos/${proyectoId}/bloques`);
+        bloques.value = response.data;
     } catch (error) {
         console.error('Error cargando bloques:', error);
         mostrarError('Error al cargar bloques');
@@ -114,8 +116,10 @@ const cargarBloques = async (proyectoId) => {
 const cargarPiezasPendientes = async (bloqueId) => {
     try {
         loading.value = true;
-        const response = await axios.get(`/api/piezas?bloque_id=${bloqueId}&solo_pendientes=true`);
-        piezas.value = response.data.data;
+        const response = await axios.get(`/piezas?bloque_id=${bloqueId}&solo_pendientes=true`, {
+            headers: { 'Accept': 'application/json' }
+        });
+        piezas.value = response.data;
     } catch (error) {
         console.error('Error cargando piezas:', error);
         mostrarError('Error al cargar piezas');
@@ -168,7 +172,7 @@ const registrarPeso = async () => {
     try {
         loading.value = true;
         
-        const response = await axios.post(`/api/piezas/${form.pieza_id}/registrar-peso`, {
+        const response = await axios.post(`/piezas/${form.pieza_id}/registrar-peso`, {
             peso_real: parseFloat(form.peso_real),
         });
 
@@ -222,14 +226,11 @@ onMounted(() => {
 
 <template>
     <AppLayout title="Formulario de Registro de Piezas">
-        <template #header>
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                Registro de Piezas
-            </h2>
-        </template>
-
-        <div class="py-12">
-            <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
+        <div class="max-w-4xl mx-auto">
+            <div class="mb-6">
+                <h1 class="text-2xl font-semibold text-gray-800">Registro de Piezas</h1>
+                <p class="text-gray-600 mt-1">Registrar peso real de las piezas fabricadas</p>
+            </div>
                 <!-- Mensajes -->
                 <div v-if="successMessage" class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
                     <span class="block sm:inline">{{ successMessage }}</span>
@@ -427,7 +428,6 @@ onMounted(() => {
                         <li>La diferencia se calcula automáticamente (Peso Real - Peso Teórico)</li>
                     </ul>
                 </div>
-            </div>
         </div>
     </AppLayout>
 </template>

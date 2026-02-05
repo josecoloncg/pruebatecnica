@@ -8,7 +8,8 @@ use App\Repositories\Contracts\BloqueRepositoryInterface;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\View\View;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 
 class PiezaController extends Controller
 {
@@ -49,17 +50,22 @@ class PiezaController extends Controller
 
         // Web view
         $piezas = $this->piezaRepository->getAllPaginated();
-        return view('piezas.index', compact('piezas'));
+        return Inertia::render('Piezas/Index', [
+            'piezas' => $piezas
+        ]);
     }
 
     /**
      * Show form for creating a new resource.
      */
-    public function create(): View
+    public function create(): InertiaResponse
     {
         $proyectos = $this->proyectoRepository->all();
         $bloques = $this->bloqueRepository->all();
-        return view('piezas.create', compact('proyectos', 'bloques'));
+        return Inertia::render('Piezas/Create', [
+            'proyectos' => $proyectos,
+            'bloques' => $bloques
+        ]);
     }
 
     /**
@@ -121,13 +127,14 @@ class PiezaController extends Controller
             return response()->json(['success' => true, 'data' => $piezaArray]);
         }
 
-        return view('piezas.show', compact('pieza'));
+        // Redirigir a edit en lugar de show
+        return redirect()->route('piezas.edit', $id);
     }
 
     /**
      * Show form for editing the specified resource.
      */
-    public function edit(int $id): View
+    public function edit(int $id): InertiaResponse
     {
         $pieza = $this->piezaRepository->find($id);
         
@@ -137,7 +144,11 @@ class PiezaController extends Controller
 
         $proyectos = $this->proyectoRepository->all();
         $bloques = $this->bloqueRepository->all();
-        return view('piezas.edit', compact('pieza', 'proyectos', 'bloques'));
+        return Inertia::render('Piezas/Edit', [
+            'pieza' => $pieza,
+            'proyectos' => $proyectos,
+            'bloques' => $bloques
+        ]);
     }
 
     /**
@@ -261,7 +272,7 @@ class PiezaController extends Controller
      */
     public function formulario()
     {
-        return view('piezas.formulario');
+        return Inertia::render('FormularioPiezas');
     }
 
     /**
@@ -279,6 +290,8 @@ class PiezaController extends Controller
             ];
         })->values()->toArray();
 
-        return view('piezas.reporte', compact('piezasPorProyecto'));
+        return Inertia::render('ReportePiezas', [
+            'piezasPorProyecto' => $piezasPorProyecto
+        ]);
     }
 }

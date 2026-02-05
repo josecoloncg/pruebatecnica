@@ -1,24 +1,20 @@
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue';
-import Welcome from '@/Components/Welcome.vue';
 import { Link } from '@inertiajs/vue3';
 </script>
 
 <template>
     <AppLayout title="Dashboard">
-        <template #header>
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                Dashboard
-            </h2>
-        </template>
-
-        <div class="py-12">
-            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto">
+            <div class="mb-6">
+                <h1 class="text-2xl font-semibold text-gray-800">Dashboard</h1>
+                <p class="text-gray-600 mt-1">Bienvenido al sistema de gestión de piezas</p>
+            </div>
                 <!-- Tarjetas de acceso rápido -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <!-- Formulario de Registro -->
                     <Link
-                        :href="route('formulario.piezas')"
+                        :href="route('piezas.formulario')"
                         class="block p-6 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
                     >
                         <div class="flex items-center">
@@ -45,7 +41,7 @@ import { Link } from '@inertiajs/vue3';
 
                     <!-- Reporte de Piezas -->
                     <Link
-                        :href="route('reporte.piezas')"
+                        :href="route('piezas.reporte')"
                         class="block p-6 bg-gradient-to-r from-green-500 to-teal-600 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
                     >
                         <div class="flex items-center">
@@ -70,11 +66,6 @@ import { Link } from '@inertiajs/vue3';
                         </div>
                     </Link>
                 </div>
-
-                <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
-                    <Welcome />
-                </div>
-            </div>
         </div>
     </AppLayout>
 </template>

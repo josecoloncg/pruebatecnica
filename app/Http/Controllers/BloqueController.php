@@ -6,7 +6,8 @@ use App\Repositories\Contracts\BloqueRepositoryInterface;
 use App\Repositories\Contracts\ProyectoRepositoryInterface;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class BloqueController extends Controller
 {
@@ -36,18 +37,22 @@ class BloqueController extends Controller
             return response()->json($bloques);
         }
 
-        // Web view
+        // Web view con Inertia
         $bloques = $this->bloqueRepository->getAllPaginated(15);
-        return view('bloques.index', compact('bloques'));
+        return Inertia::render('Bloques/Index', [
+            'bloques' => $bloques
+        ]);
     }
 
     /**
      * Show form for creating a new resource.
      */
-    public function create(): View
+    public function create(): Response
     {
         $proyectos = $this->proyectoRepository->all();
-        return view('bloques.create', compact('proyectos'));
+        return Inertia::render('Bloques/Create', [
+            'proyectos' => $proyectos
+        ]);
     }
 
     /**
@@ -94,13 +99,14 @@ class BloqueController extends Controller
             return response()->json(['success' => true, 'data' => $bloque]);
         }
 
-        return view('bloques.show', compact('bloque'));
+        // Redirigir a edit en lugar de show
+        return redirect()->route('bloques.edit', $id);
     }
 
     /**
      * Show form for editing the specified resource.
      */
-    public function edit(int $id): View
+    public function edit(int $id): Response
     {
         $bloque = $this->bloqueRepository->find($id);
         
@@ -109,7 +115,10 @@ class BloqueController extends Controller
         }
 
         $proyectos = $this->proyectoRepository->all();
-        return view('bloques.edit', compact('bloque', 'proyectos'));
+        return Inertia::render('Bloques/Edit', [
+            'bloque' => $bloque,
+            'proyectos' => $proyectos
+        ]);
     }
 
     /**
